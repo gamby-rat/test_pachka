@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  db:
+    image: mariadb:10.11.2
+    environment:
+      MYSQL_DATABASE: app
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./structure.sql:/docker-entrypoint-initdb.d/structure.sql   
+      - ./db_data:/var/lib/mysql
+    networks:
+      - test_network 
+    command: ["--wsrep-new-cluster"]  
+
+
+  db_2:
+    image: mariadb:10.11.2
+    restart: always
+    environment:
+      MYSQL_DATABASE: app
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_MASTER_HOST: db_master
+      MYSQL_MASTER_USER: root
+      MYSQL_MASTER_PASSWORD: ''
+    ports:
+      - "3308:3306"
+    depends_on:
+      - db  
+    volumes:
+      - ./slave_data:/var/lib/mysql  
+    networks:
+      - test_network   
+
+
+  app:
+    build: .
+    ports:
+      - "127.0.0.1:4567:4567"
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+#      DB_SLAVE_HOST: db_slave
+      DB_USERNAME: root
+      DB_NAME: app
+    networks:
+      - test_network  
+networks:
+  test_network:
+    driver: bridge      
+
+
+#   haproxy:
+#    image: haproxy:latest
+#    ports:
+#      - "3309:3309"
+#    depends_on:
+#      - db
+#      - db_slave
+#    environment:
+#      - BALANCE=roundrobin
+#      - SERVER=db:3306 check
+#      - SERVER=db_clone:3307 check
+#    volumes:
+#      - ./hp-config:/usr/local/etc/haproxy/haproxy.cfg
+#    networks:
+#      - test_network     
+    
+

@@ -1,0 +1,15 @@
+require 'sinatra'
+require 'mysql2'
+
+get '/' do
+  db_config = {
+    host: ENV['DB_HOST'], username: ENV['DB_USERNAME'], database: ENV['DB_NAME']
+  }
+
+  client = Mysql2::Client.new(db_config)
+  client.query("INSERT INTO users (name) VALUES ('Test name')")
+  results = client.query('SELECT * FROM users')
+
+  content_type :json
+  results.to_a.to_json
+end
