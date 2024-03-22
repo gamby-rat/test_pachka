@@ -3,6 +3,7 @@ version: '3.8'
 services:
   db:
     image: mariadb:10.11.2
+    restart: always
     environment:
       MYSQL_DATABASE: app
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
@@ -37,6 +38,7 @@ services:
 
   app:
     build: .
+    restart: always
     ports:
       - "127.0.0.1:4567:4567"
     depends_on:
